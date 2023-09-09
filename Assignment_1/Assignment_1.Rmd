@@ -1,0 +1,70 @@
+---
+title: "Assignment_1"
+author: "Tirumal Achina"
+date: "2023-09-07"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+#Importing the data.
+#Source: chatGpt and github
+#Downloaded the dataset and read it from my desktop.
+```{r}
+titanic <- read.csv("C:/Users/tirum/Desktop/titanic/titanic.csv")
+#titanic
+#the above line would give the whole dataset.
+```
+
+#Descriptive analysis: This shows the summary of whole dataset that we have given. It includes the Distribution, Measures of Central Tendency(Mean,Median,Mode),Measures of Variability(Standard Deviation,Range,Variance,Interquartile Range).
+
+```{r}
+head(titanic) #This function shows the frst 6 rows and columns of the dataset
+tail(titanic) #This function shows the last 6 rows and columns of dataset.
+summary(titanic) #This shows the whole summary that includes mean, median,mode and so on.
+
+```
+#Transforming variables: This can be done in variable ways such as log,exponential,normalization and so on...For this dataset I choosed Normalization Transformation.
+#Normalization Transformation: This changes the scale of variable where the mean becomes 0 and the standard deviation becomes 1. It can be done by min-max or z-score normalization.I have Normalized Fare column in the titanic table.
+
+```{r}
+min_max_normalize <- function(x) {
+  return((x - min(x)) / (max(x) - min(x)))
+}
+#Here the Age got normalized and we can find that values in the Age_Norm column
+titanic$Age_norm <- min_max_normalize(titanic$Age)
+head(titanic)
+
+```
+```{r}
+#Log Transformation to Fare Column.
+titanic$Fare_log = log(titanic$Fare)
+titanic$Fare_log
+```
+
+#Hist plots
+
+```{r}
+hist(titanic$Age, xlab = "Age", ylab = "Frequency",main = "Hist_Age",col = "white")
+
+#plot(titanic$Age, xlab = "Age",ylab = "Frequency",main = "Hist_Age)
+```
+
+
+#Marking the Scatter plot for Age and Fare
+
+```{r}
+
+x = titanic$Age #Age on the x-axis
+y = titanic$Fare #Fare on the y-axis
+plot(x,y, xlab ="Age",ylab = "Fare",main = "Age-Fare Plot",pch = 19,col =  "cyan")
+
+```
+
+```{r}
+x = titanic$Age
+y = titanic$Pclass
+plot(x,y, xlab ="Age",ylab = "Pclass",main = "Age-Pclass Plot",pch = 19,col =  "cyan")
+```
+
