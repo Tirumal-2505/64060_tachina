@@ -1,0 +1,318 @@
+---
+title: "Assignment_3"
+author: "Tirumal Achina"
+date: "2023-10-13"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+***
+
+# Summary:
+
+I have stored the data into the data frame 'buried', so that we can call it and use it where ever we need it. After that we have created a dummy variable "Injury" that classifies max severe injury i.e.; Max_Sev_IR equals 1 or 2 assumed that their is some degree of injury(Injury = Yes)."No injury" is implied if MaX_Sev_IR equals 0.
+
+
+1:  we have a attribute called Injury that is a categorical variable having classifiers yes or no. we have only information that accident is reported, so the reported accident would be predicted as INJURY = YES. This is because the number of "Injury= yes" records are more than the "Injury = No" records which would return it has "yes" that means it has more probability to be classified as an accident.
+
+
+2: we are going to select the first 24 records in the dataset and considering two predicting factors WEATHER_R AND TRAF_CON_R. We stored this dataset into a variable names "Sub_Buried". By creating a pivot table of these records we can clearly understand the data according to the levels of weather and traffic.
+       
+##Bayes Theorem : 
+P(A/B) = (P(B/A)P(A))/P(B) where P(A),P(B) are events and P(B) not equal to 0.
+
+2.1: we successfully computed the bayes conditional probabilities for six predictors of Injury would be yes. We got the following values for different combinations.
+
+P(INJURY = Yes | WEATHER_R = 1 and TRAF_CON_R = 0): 0.6666667 
+
+P(INJURY = Yes | WEATHER_R = 2 and TRAF_CON_R = 0): 0.1818182 
+
+P(INJURY = Yes | WEATHER_R = 2 and TRAF_CON_R = 2): 1 
+
+The other 3 combinations pf probability of injury=yes is 0. 
+
+P(INJURY = Yes | WEATHER_R = 1 and TRAF_CON_R = 1): 0 
+
+P(INJURY = Yes | WEATHER_R = 1 and TRAF_CON_R = 2): 0 
+
+P(INJURY = Yes | WEATHER_R = 2 and TRAF_CON_R = 1): 0
+
+
+
+2.2: In this we have set a cutoff of 0.5 that is probability greater than 0.5 would be classified as "Yes" and less than 0.5 as "No". Here we created a new attribute so that we can store the predicted injury and we can use it to compare between the actual and predicted. .
+
+
+2.3: We computed the naive bayes conditional probability of injury with given attributes WEATHER_R = 1 and TRAF_CON_R = 1. 
+
+P(Injury=Yes | WEATHER_R = 1, TRAF_CON_R = 1) = (P(WEATHER_R = 1, TRAF_CON_R = 1 | Injury=yes) * P(Injury))/ P(WEATHER_R = 1, TRAF_CON_R = 1)
+
+The results are as follows:
+
+-If INJURY = YES, the probability is 0.
+
+-If INJURY - NO , the probability is 1.
+
+
+2.4: The Naive Bayes model's predictions and the exact Bayes classification has following observations.
+
+-The primary and important observation is that both classifications showing "yes" at same indexes. By this we can say the Ranking(=Ordering) of Observations is "Equivalent".
+
+-If the ranking is equivalent then that shows both classifications given equivalent importance to all the factors and also the similar understanding of data. Here models are making consistent decisions about the relative importance of datapoints.
+
+-To conclude  this evaluation is based on a subset that included only three attributes. To get the overall performance and equivalence of the model, we would typically evaluate it on a whole dataset and use standard evaluation metrics such as accuracy, precision, recall, and F1-score. These metrics provide a more comprehensive understanding of the model's classification performance.
+
+
+3: Next thing here is we are dividing our whole dataset into training(60%) and validation sets(40%). After diving the sets we train the model with the training data that is used to identify the future accidents(new or unseen data) with the provided information. 
+
+-Validation set: This set is used to valid the data in it by using reference as training dataset so that we can know how well our model is trained when we give the unknown data(new data). It would classify the validation set by considering the training set.
+
+-After partitioning of the data frame, we normalize the data so that all the data will be on same line. we perform operations on these normalized data so that we can get accurate values which we use for decision making.
+
+-The important thing is that the attributes that we compare should have same levels so that we don’t encounter an error and  also should be of numeric or integer.
+
+
+3.1: The confusion matrix shows the various metrics like Accuracy,Sensitivity and the matrix has True positives,False Positives, False Negatives and True Negatives.
+
+-Accuracy: The model has an Accuracy of 0.5228 or 52.2%. This shows that our model identifies 52% cases rightly and 48% are wrongly identified.A Low accuracy in a model is due to Improper data quality, data leakage, Data pre-processing and many other factors to be considered.
+
+-Sensitivity: The sensitivity is 0.15 that is 15%. This says that the model is unable to identify the True Positive rate or recall(yes cases).
+
+-Specificity: The specificity is 0.87 or 87%. the model is identifying the Negative cases correctly.
+
+3.2: Error rate is used to know how well the model is identifying the instances that shows lower error rate the more the model is efficient.
+
+Error Rate = (Number of Misclassified Instances) / (Total Number of Instances)
+
+-The error  rate is 0.47 or 47%
+
+
+***
+```{r}
+#Loading the libraries that are required for the task
+library(class)
+library(caret)
+library(e1071)
+library(dplyr)
+```
+
+```{r}
+
+#Loading the data set and assigning it to buried variable.
+buried <- read.csv("accidentsFull.csv")
+dim(buried)
+
+```
+#1.Using the information in this dataset, if an accident has just been reported and no further information is available, what should the prediction be? (INJURY = Yes or No?) Why?s
+```{r}
+#Here we added a dummy variable called injury.
+buried$INJURY = ifelse(buried$MAX_SEV_IR %in% c(1,2),"yes","no")
+table(buried$INJURY) # as yes is greater then no 
+
+#To know the column names so that we can have clear idea of columns that we are working on. 
+t(names(buried))
+```
+#2.Select the first 24 records in the dataset and look only at the response (INJURY) and the two predictors WEATHER_R and TRAF_CON_R. Create a pivot table that examines INJURY as a function of the two predictors for these 24 records. Use all three variables in the pivot table as rows/columns.
+
+```{r}
+#Creating the pivot tables
+sub_buried <- buried[1:24,c("INJURY","WEATHER_R","TRAF_CON_R")]
+sub_buried
+pi_table1 <- ftable(sub_buried)
+pi_table1
+
+pi_table2 <- ftable(sub_buried[,-1])
+pi_table2
+
+```
+
+#2.1.Compute the exact Bayes conditional probabilities of an injury (INJURY = Yes) given the six possible combinations of the predictors.
+```{r}
+#bayes
+#INJURY = YES
+pair_1 = pi_table1[3,1]/pi_table2[1,1]
+cat("P(INJURY = Yes | WEATHER_R = 1 and TRAF_CON_R = 0):", pair_1, "\n")
+
+pair_2 = pi_table1[3,2]/pi_table2[1,2]
+cat("P(INJURY = Yes | WEATHER_R = 1 and TRAF_CON_R = 1):", pair_2, "\n")
+
+pair_3 = pi_table1[3,3]/pi_table2[1,3]
+cat("P(INJURY = Yes | WEATHER_R = 1 and TRAF_CON_R = 2):", pair_3, "\n")
+
+pair_4 = pi_table1[4,1]/pi_table2[2,1]
+cat("P(INJURY = Yes | WEATHER_R = 2 and TRAF_CON_R = 0):", pair_4, "\n")
+
+pair_5 = pi_table1[4,2]/pi_table2[2,2]
+cat("P(INJURY = Yes | WEATHER_R = 2 and TRAF_CON_R = 1):", pair_5, "\n")
+
+pair_6 = pi_table1[4,3]/pi_table2[2,3]
+cat("P(INJURY = Yes | WEATHER_R = 2 and TRAF_CON_R = 2):", pair_6, "\n")
+
+
+#Now we check the condition whether Injury = no
+
+dual_1 = pi_table1[1,1]/pi_table2[1,1]
+cat("P(INJURY = no | WEATHER_R = 1 and TRAF_CON_R = 0):", dual_1, "\n")
+
+dual_2 = pi_table1[1,2]/pi_table2[1,2]
+cat("P(INJURY = no | WEATHER_R = 1 and TRAF_CON_R = 1):", dual_2, "\n")
+
+dual_3 = pi_table1[1,3]/pi_table2[1,3]
+cat("P(INJURY = no | WEATHER_R = 1 and TRAF_CON_R = 2):", dual_3, "\n")
+
+dual_4 = pi_table1[2,1]/pi_table2[2,1]
+cat("P(INJURY = no | WEATHER_R = 2 and TRAF_CON_R = 0):", dual_4, "\n")
+
+dual_5 = pi_table1[2,2]/pi_table2[2,2]
+cat("P(INJURY = no | WEATHER_R = 2 and TRAF_CON_R = 1):", dual_5, "\n")
+
+dual_6 = pi_table1[2,3]/pi_table2[2,3]
+cat("P(INJURY = no | WEATHER_R = 2 and TRAF_CON_R = 2):", dual_6, "\n")
+
+
+#Now probability of the total occurences.
+
+
+```
+#2.2 Classify the 24 accidents using these probabilities and a cutoff of 0.5.
+
+
+```{r}
+# we have calculated the conditional probabilities already, we can use them to classify the 24 accidents.
+prob_injury <- rep(0,24)
+for(i in 1:24){
+  print(c(sub_buried$WEATHER_R[i],sub_buried$TRAF_CON_R[i]))
+  
+  if(sub_buried$WEATHER_R[i] == "1" && sub_buried$TRAF_CON_R[i] == "0"){
+    prob_injury[i] = pair_1
+    
+  } else if (sub_buried$WEATHER_R[i] == "1" && sub_buried$TRAF_CON_R[i] == "1"){
+    prob_injury[i] = pair_2
+    
+  } else if (sub_buried$WEATHER_R[i] == "1" && sub_buried$TRAF_CON_R[i] == "2"){
+    prob_injury[i] = pair_3
+    
+  }
+  else if (sub_buried$WEATHER_R[i] == "2" && sub_buried$TRAF_CON_R[i] == "0"){
+    prob_injury[i] = pair_4
+    
+  } else if (sub_buried$WEATHER_R[i] == "2" && sub_buried$TRAF_CON_R[i] == "1"){
+    prob_injury[i] = pair_5
+    
+  }
+  else if(sub_buried$WEATHER_R[i] == "2" && sub_buried$TRAF_CON_R[i] == "2"){
+    prob_injury[i] = pair_6
+  }
+  
+}
+```
+
+```{r}
+#cutoff 0.5
+
+sub_buried$prob_injury = prob_injury
+sub_buried$pred.prob  = ifelse(sub_buried$prob_injury>0.5, "yes","no")
+
+
+head(sub_buried)
+```
+
+
+
+
+
+#2.3Compute manually the naive Bayes conditional probability of an injury given WEATHER_R = 1 and TRAF_CON_R = 1.
+
+
+```{r}
+
+IY = pi_table1[3,2]/pi_table2[1,2]
+I = (IY * pi_table1[3, 2]) / pi_table2[1, 2]
+cat("P(INJURY = Yes | WEATHER_R = 1 and TRAF_CON_R = 1):", IY, "\n")
+
+IN = pi_table1[1,2]/pi_table2[1,2]
+N = (IY * pi_table1[3, 2]) / pi_table2[1, 2]
+cat("P(INJURY = no | WEATHER_R = 1 and TRAF_CON_R = 1):", IN, "\n")
+
+
+```
+
+
+#2.4.Run a naive Bayes classifier on the 24 records and two predictors. Check the model output to obtain probabilities and classifications for all 24 records. Compare this to the exact Bayes classification. Are the resulting classifications equivalent? Is the ranking (= ordering) of observations equivalent?
+```{r}
+new_b <- naiveBayes(INJURY ~ TRAF_CON_R + WEATHER_R, 
+                 data = sub_buried)
+
+
+new_buried <- predict(new_b, newdata = sub_buried, type = "raw")
+sub_buried$nbpred.prob <- new_buried[,2]
+
+```
+
+
+```{r}
+new_c <- train(INJURY ~ TRAF_CON_R + WEATHER_R, 
+      data = sub_buried, method = "nb")
+
+
+predict(new_c, newdata = sub_buried[,c("INJURY", "WEATHER_R", "TRAF_CON_R")])
+predict(new_c, newdata = sub_buried[,c("INJURY", "WEATHER_R", "TRAF_CON_R")],
+                                    type = "raw")
+```
+
+
+
+#Let us now return to the entire dataset. Partition the data into training (60%) and validation (40%). 
+
+```{r}
+accident = buried[c(-24)]
+
+set.seed(1)
+acc.index = sample(row.names(accident), 0.6*nrow(accident)[1])
+valid.index = setdiff(row.names(accident), acc.index)
+
+
+acc.df = accident[acc.index,]
+valid.df= accident[valid.index,]
+
+dim(acc.df)
+dim(valid.df)
+
+norm.values <- preProcess(acc.df[,], method = c("center", "scale"))
+acc.norm.df <- predict(norm.values, acc.df[, ])
+valid.norm.df <- predict(norm.values, valid.df[, ])
+
+
+class(acc.norm.df$INJURY)
+acc.norm.df$INJURY <- as.factor(acc.norm.df$INJURY)
+
+class(acc.norm.df$INJURY)
+
+
+```
+##3.1.Run a naive Bayes classifier on the complete training set with the relevant predictors (and INJURY as the response). Note that all predictors are categorical. Show the confusion matrix.
+```{r}
+
+nb_model <- naiveBayes(INJURY ~ WEATHER_R + TRAF_CON_R, data = acc.norm.df)
+
+predictions <- predict(nb_model, newdata = valid.norm.df)
+
+#Checking factor levels in validation dataset and training dataset
+valid.norm.df$INJURY <- factor(valid.norm.df$INJURY, levels = levels(acc.norm.df$INJURY))
+
+# Show the confusion matrix
+confusionMatrix(predictions, valid.norm.df$INJURY)
+
+```
+
+#3.2.What is the overall error of the validation set?
+```{r}
+
+error_rate <- 1 - sum(predictions == valid.norm.df$INJURY) / nrow(valid.norm.df)
+error_rate
+```
+
+
